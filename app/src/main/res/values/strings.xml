@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">AGV Demo</string>
+    <string name="search">Search</string>
+
+    <string-array name="categories">
+        <item>Style</item>
+        <item>Shopping</item>
+        <item>Comics</item>
+        <item>Humor</item>
+        <item>Nature</item>
+        <item>Animals</item>
+        <item>TV &amp; Movies</item>
+        <item>Gaming</item>
+        <item>Travel</item>
+        <item>Auto</item>
+        <item>Dance</item>
+        <item>Food</item>
+        <item>Science &amp; Tech</item>
+    </string-array>
+    <string name="title_activity_video_view">VideoViewActivity</string>
+
+</resources>

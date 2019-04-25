@@ -1,0 +1,34 @@
+<resources>
+
+    <style name="Theme.AppTheme" parent="Base.Theme.AppTheme"></style>
+
+    <style name="Base.Theme.AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">#b71b27</item>
+        <item name="colorPrimaryDark">#2e050b</item>
+        <item name="colorAccent">#ff4607</item>
+        <item name="android:windowBackground">@color/colorAccent</item>
+    </style>
+
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">@color/colorAccent</item>
+    </style>
+
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="categoryTextStyle">
+        <item name="android:layout_margin">@dimen/margin_text_view</item>
+        <item name="android:background">@drawable/category_border</item>
+    </style>
+
+</resources>
