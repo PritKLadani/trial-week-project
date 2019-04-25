@@ -106,7 +106,7 @@ public class VideoViewActivity extends AppCompatActivity {
                             Log.d("final", "previous: time = " + player.getContentPosition() + " position = " + (position - 1));
                             videoLinks.get(position - 1).setStartAt((int) player.getCurrentPosition());
                             previousHolder.updateVisibility(false);
-                            Bitmap bitmap = null;
+                            /*Bitmap bitmap = null;
                             try {
                                 MyRunnable myRunnable = new MyRunnable(videoLinks.get(position - 1).getVideoLink(), videoLinks.get(position - 1).getStartAt(), previousHolder.thumbnail);
                                 myRunnable.run();
@@ -118,7 +118,7 @@ public class VideoViewActivity extends AppCompatActivity {
                                 Log.d("final", "thumbnail set");
                                 bitmap = Bitmap.createScaledBitmap(bitmap, 240, 240, false);
                                 previousHolder.thumbnail.setImageBitmap(bitmap);
-                            }
+                            }*/
 
                             /*BitmapPool bitmapPool = Glide.get(getApplicationContext()).getBitmapPool();
                             VideoBitmapDecoder videoBitmapDecoder = new VideoBitmapDecoder(videoLinks.get(position - 1).getStartAt() * 1000);
@@ -141,7 +141,7 @@ public class VideoViewActivity extends AppCompatActivity {
                             Log.d("final", "next: time = " + player.getContentPosition() + " position = " + (position + 1));
                             videoLinks.get(position + 1).setStartAt((int) player.getCurrentPosition());
                             nextHolder.updateVisibility(false);
-                            Bitmap bitmap = null;
+                            /*Bitmap bitmap = null;
                             try {
                                 bitmap = retriveVideoFrameFromVideo(videoLinks.get(position + 1).getVideoLink(), videoLinks.get(position + 1).getStartAt());
                             } catch (Throwable throwable) {
@@ -150,7 +150,7 @@ public class VideoViewActivity extends AppCompatActivity {
                             if (bitmap != null) {
                                 bitmap = Bitmap.createScaledBitmap(bitmap, 240, 240, false);
                                 nextHolder.thumbnail.setImageBitmap(bitmap);
-                            }
+                            }*/
                             player.setPlayWhenReady(false);
                             nextHolder.playerView.setPlayer(null);
                             nextHolder.isPlaying = false;
