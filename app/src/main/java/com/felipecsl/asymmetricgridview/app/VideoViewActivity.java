@@ -1,7 +1,5 @@
 package com.felipecsl.asymmetricgridview.app;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
 import android.os.Build;

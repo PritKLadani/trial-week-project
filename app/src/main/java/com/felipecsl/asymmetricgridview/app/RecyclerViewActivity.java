@@ -14,9 +14,16 @@ import com.felipecsl.asymmetricgridview.AsymmetricRecyclerView;
 import com.felipecsl.asymmetricgridview.AsymmetricRecyclerViewAdapter;
 import com.felipecsl.asymmetricgridview.Utils;
 import com.felipecsl.asymmetricgridview.app.model.DemoItem;
+import com.felipecsl.asymmetricgridview.app.presenter.ApiObject;
+import com.felipecsl.asymmetricgridview.app.presenter.ApiUtil;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class RecyclerViewActivity extends AppCompatActivity {
 
@@ -24,6 +31,11 @@ public class RecyclerViewActivity extends AppCompatActivity {
     RecyclerView recyclerViewCategories;
     private final DemoUtils demoUtils = new DemoUtils();
     private boolean loading = false;
+    List<ApiObject> postList = new ArrayList<>(18);
+    List<DemoItem> dataList;
+    RecyclerViewAdapter adapter;
+    AsymmetricRecyclerView recyclerView;
+    AsymmetricRecyclerViewAdapter asymmetricRecyclerViewAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +43,7 @@ public class RecyclerViewActivity extends AppCompatActivity {
         setContentView(R.layout.activity_recyclerview);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
-        final AsymmetricRecyclerView recyclerView = findViewById(R.id.recyclerView);
+        recyclerView = findViewById(R.id.recyclerView);
 
         setSupportActionBar(toolbar);
 
@@ -55,18 +67,31 @@ public class RecyclerViewActivity extends AppCompatActivity {
         layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         recyclerViewCategories.setLayoutManager(layoutManager);
 
-        final List<DemoItem> dataList = demoUtils.moarItems(54);
-        final RecyclerViewAdapter adapter = new RecyclerViewAdapter(dataList, RecyclerViewActivity.this);
+        ApiUtil.getServiceClass().getAllPost().enqueue(new Callback<List<ApiObject>>() {
+            @Override
+            public void onResponse(Call<List<ApiObject>> call, Response<List<ApiObject>> response) {
+                if(response.isSuccessful()){
+                    postList = response.body();
+                    Log.d("retro", "Returned count " + postList.get(0).getUrl());
+                    setupRecyclerView();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<ApiObject>> call, Throwable t) {
+                //showErrorMessage();
+                Log.d("retro", "error loading from API ::::" + t.getLocalizedMessage() + " :::: " + t.getMessage() + " :::: " + t.getCause());
+            }
+        });
+
+
+        dataList = demoUtils.moreItems(postList.size(), postList);
+        adapter = new RecyclerViewAdapter(dataList, RecyclerViewActivity.this);
 
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
-
-                switch (newState) {
-                    case RecyclerView.SCROLL_STATE_IDLE:
-                        //loading = false;
-                }
             }
 
             @Override
@@ -84,13 +109,6 @@ public class RecyclerViewActivity extends AppCompatActivity {
 
                 Log.d("Temp_log_aaa", "isVideoView: ");
 
-                /*((RecyclerViewAdapter.MyViewHolderVideo) recyclerView.findViewHolderForAdapterPosition(actualFirstVisibleItem))
-                        .player.setPlayWhenReady(true);*/
-
-
-
-
-
                 if (dy > 0) {
 
                     int totalItemCount = linearLayoutManager.getItemCount();
@@ -102,8 +120,8 @@ public class RecyclerViewActivity extends AppCompatActivity {
                         Log.d("RecyclerViewActivity2", "reached at the end:" + totalItemCount + ":" + lastVisibleItem);
                         loading = true;
                         int oldSize = dataList.size() / 3;
-                        dataList.addAll(demoUtils.moarItems(54));
-                        adapter.notifyItemRangeChanged(oldSize, 18);
+                        dataList.addAll(demoUtils.moreItems(postList.size(), postList));
+                        adapter.notifyItemRangeChanged(oldSize, postList.size());
                         loading = false;
                     }
                 }
@@ -112,11 +130,19 @@ public class RecyclerViewActivity extends AppCompatActivity {
 
 
         recyclerView.setRequestedColumnCount(3);
-//        recyclerView.setDebugging(true);
         recyclerView.setRequestedHorizontalSpacing(Utils.dpToPx(this, 3));
         recyclerView.addItemDecoration(
                 new SpacesItemDecoration(getResources().getDimensionPixelSize(R.dimen.recycler_padding)));
-        recyclerView.setAdapter(new AsymmetricRecyclerViewAdapter<>(this, recyclerView, adapter));
+        asymmetricRecyclerViewAdapter = new AsymmetricRecyclerViewAdapter<>(this, recyclerView, adapter);
+        recyclerView.setAdapter(asymmetricRecyclerViewAdapter);
+    }
+
+    private void setupRecyclerView() {
+        dataList = demoUtils.moreItems(postList.size(), postList);
+        adapter = new RecyclerViewAdapter(dataList, RecyclerViewActivity.this);
+        asymmetricRecyclerViewAdapter = new AsymmetricRecyclerViewAdapter(this, recyclerView, adapter);
+        adapter.notifyDataSetChanged();
+        asymmetricRecyclerViewAdapter.notifyDataSetChanged();
     }
 
 }

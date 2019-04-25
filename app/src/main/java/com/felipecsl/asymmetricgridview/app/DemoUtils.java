@@ -1,6 +1,9 @@
 package com.felipecsl.asymmetricgridview.app;
 
+import android.util.Log;
+
 import com.felipecsl.asymmetricgridview.app.model.DemoItem;
+import com.felipecsl.asymmetricgridview.app.presenter.ApiObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +14,7 @@ final class DemoUtils {
   DemoUtils() {
   }
 
-  public List<DemoItem> moarItems(int qty) {
+  public List<DemoItem> moreItems(int qty, List<ApiObject> postList) {
 	List<DemoItem> items = new ArrayList<>();
 	boolean isLeft = true;
 	int count = 0;
@@ -35,10 +38,12 @@ final class DemoUtils {
 	  int rowSpan = colSpan;
 	  String url;
 	  if(rowSpan == 2) {
-	      url = "https://sample-videos.com/video123/mp4/240/big_buck_bunny_240p_30mb.mp4";
+	      url = postList.get(i).getUrl();
       } else {
-	      url = "https://b.zmtcdn.com///data///reviews_photos///2f3///4c5968aa388e753f5c2fff26eb8962f3_1545998762.jpg";
+	      url = postList.get(i).getUrl();
       }
+      url = url.replace("\\/", "/");
+      Log.d("retro", "url: " +url);
 	  DemoItem item = new DemoItem(colSpan, rowSpan, currentOffset + i, url);
 	  items.add(item);
 	}
