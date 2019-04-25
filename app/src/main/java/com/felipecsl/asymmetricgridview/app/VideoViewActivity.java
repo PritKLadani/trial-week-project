@@ -2,6 +2,9 @@ package com.felipecsl.asymmetricgridview.app;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.media.MediaMetadataRetriever;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -14,8 +17,14 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.VideoView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DecodeFormat;
+import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool;
+import com.bumptech.glide.load.resource.bitmap.FileDescriptorBitmapDecoder;
+import com.bumptech.glide.load.resource.bitmap.VideoBitmapDecoder;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
@@ -29,7 +38,9 @@ import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 public class VideoViewActivity extends AppCompatActivity {
 
@@ -95,6 +106,28 @@ public class VideoViewActivity extends AppCompatActivity {
                             Log.d("final", "previous: time = " + player.getContentPosition() + " position = " + (position - 1));
                             videoLinks.get(position - 1).setStartAt((int) player.getCurrentPosition());
                             previousHolder.updateVisibility(false);
+                            Bitmap bitmap = null;
+                            try {
+                                MyRunnable myRunnable = new MyRunnable(videoLinks.get(position - 1).getVideoLink(), videoLinks.get(position - 1).getStartAt(), previousHolder.thumbnail);
+                                myRunnable.run();
+//                                bitmap = retriveVideoFrameFromVideo(videoLinks.get(position - 1).getVideoLink(), videoLinks.get(position - 1).getStartAt());
+                            } catch (Throwable throwable) {
+                                throwable.printStackTrace();
+                            }
+                            if (bitmap != null) {
+                                Log.d("final", "thumbnail set");
+                                bitmap = Bitmap.createScaledBitmap(bitmap, 240, 240, false);
+                                previousHolder.thumbnail.setImageBitmap(bitmap);
+                            }
+
+                            /*BitmapPool bitmapPool = Glide.get(getApplicationContext()).getBitmapPool();
+                            VideoBitmapDecoder videoBitmapDecoder = new VideoBitmapDecoder(videoLinks.get(position - 1).getStartAt() * 1000);
+                            FileDescriptorBitmapDecoder fileDescriptorBitmapDecoder = new FileDescriptorBitmapDecoder(videoBitmapDecoder, bitmapPool, DecodeFormat.PREFER_ARGB_8888);
+                            Glide.with(getApplicationContext())
+                                    .load(videoLinks.get(position - 1).getVideoLink())
+                                    .asBitmap()
+                                    .videoDecoder(fileDescriptorBitmapDecoder)
+                                    .into(previousHolder.thumbnail);*/
                             player.setPlayWhenReady(false);
                             previousHolder.playerView.setPlayer(null);
                             previousHolder.isPlaying = false;
@@ -108,6 +141,16 @@ public class VideoViewActivity extends AppCompatActivity {
                             Log.d("final", "next: time = " + player.getContentPosition() + " position = " + (position + 1));
                             videoLinks.get(position + 1).setStartAt((int) player.getCurrentPosition());
                             nextHolder.updateVisibility(false);
+                            Bitmap bitmap = null;
+                            try {
+                                bitmap = retriveVideoFrameFromVideo(videoLinks.get(position + 1).getVideoLink(), videoLinks.get(position + 1).getStartAt());
+                            } catch (Throwable throwable) {
+                                throwable.printStackTrace();
+                            }
+                            if (bitmap != null) {
+                                bitmap = Bitmap.createScaledBitmap(bitmap, 240, 240, false);
+                                nextHolder.thumbnail.setImageBitmap(bitmap);
+                            }
                             player.setPlayWhenReady(false);
                             nextHolder.playerView.setPlayer(null);
                             nextHolder.isPlaying = false;
@@ -181,6 +224,72 @@ public class VideoViewActivity extends AppCompatActivity {
                 }*/
             }
         });
+    }
+
+    class MyRunnable implements Runnable {
+
+        String url;
+        int time;
+        ImageView imageView;
+
+        public MyRunnable(String url, int time, ImageView imageView) {
+            this.url = url;
+            this.time = time;
+            this.imageView = imageView;
+        }
+
+        @Override
+        public void run()  {
+            Bitmap result;
+            try {
+                result = retriveVideoFrameFromVideo(url, time);
+                imageView.setImageBitmap(result);
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
+            }
+        }
+    }
+
+    public static Bitmap retriveVideoFrameFromVideo(String videoPath, long time) throws Throwable {
+        Bitmap bitmap = null;
+        Log.d("final", "thumbnail: time = " + time + " link = " + videoPath);
+        MediaMetadataRetriever mediaMetadataRetriever = null;
+        try {
+            mediaMetadataRetriever = new MediaMetadataRetriever();
+            if (Build.VERSION.SDK_INT >= 14)
+                mediaMetadataRetriever.setDataSource(videoPath, new HashMap<String, String>());
+            else
+                mediaMetadataRetriever.setDataSource(videoPath);
+
+            bitmap = mediaMetadataRetriever.getFrameAtTime(time * 1000, MediaMetadataRetriever.OPTION_CLOSEST);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Throwable(
+                    "Exception in retriveVideoFrameFromVideo(String videoPath)"
+                            + e.getMessage());
+
+        } finally {
+            if (mediaMetadataRetriever != null) {
+                mediaMetadataRetriever.release();
+            }
+        }
+        return bitmap;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (player == null) {
+            player = ExoPlayerFactory.newSimpleInstance(
+                    new DefaultRenderersFactory(VideoViewActivity.this),
+                    new DefaultTrackSelector(), new DefaultLoadControl());
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        player.setPlayWhenReady(false);
     }
 
     public Player.EventListener playerEventListener = new Player.EventListener() {
