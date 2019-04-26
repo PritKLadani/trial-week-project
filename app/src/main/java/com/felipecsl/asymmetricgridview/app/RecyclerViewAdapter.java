@@ -10,6 +10,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.felipecsl.asymmetricgridview.AGVRecyclerViewAdapter;
@@ -45,10 +47,12 @@ class RecyclerViewAdapter extends AGVRecyclerViewAdapter<RecyclerView.ViewHolder
     public class MyViewHolder extends RecyclerView.ViewHolder {
 
         ImageView imageView;
+        TextView tempText;
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
             imageView = itemView.findViewById(R.id.imageView);
+            tempText = itemView.findViewById(R.id.temp_text);
         }
     }
 
@@ -114,10 +118,16 @@ class RecyclerViewAdapter extends AGVRecyclerViewAdapter<RecyclerView.ViewHolder
     }
 
     @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
         int viewType = holder.getItemViewType();
         Log.d("RecyclerViewActivity", "onBindView position=" + position + " viewType = " + viewType + " isInstanceof(video) " + (holder instanceof MyViewHolderVideo));
 
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(mContext, "clicked position: " + position, Toast.LENGTH_SHORT).show();
+            }
+        });
         if (holder instanceof MyViewHolder) {
             DemoItem item = items.get(position);
             MyViewHolder myViewHolder = (MyViewHolder) holder;
@@ -127,6 +137,8 @@ class RecyclerViewAdapter extends AGVRecyclerViewAdapter<RecyclerView.ViewHolder
                     .override(150, 150)
                     .centerCrop()
                     .into(myViewHolder.imageView);
+
+            myViewHolder.tempText.setText(position + "");
         } else if (holder instanceof MyViewHolderVideo) {
             DemoItem item = items.get(position);
             MyViewHolderVideo myViewHolderVideo = (MyViewHolderVideo) holder;

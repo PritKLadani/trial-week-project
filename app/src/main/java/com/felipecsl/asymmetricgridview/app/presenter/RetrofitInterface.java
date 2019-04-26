@@ -7,6 +7,6 @@ import retrofit2.http.GET;
 
 public interface RetrofitInterface {
 
-    @GET("v2/5cc2099d2d0000df595e9c7f")
+    @GET("v2/5cc27bce3300000d007e5298")
     public Call<List<ApiObject>> getAllPost();
 }
