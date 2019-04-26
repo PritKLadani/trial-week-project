@@ -15,10 +15,8 @@ import com.bumptech.glide.Glide;
 import com.felipecsl.asymmetricgridview.AGVRecyclerViewAdapter;
 import com.felipecsl.asymmetricgridview.AsymmetricItem;
 import com.felipecsl.asymmetricgridview.app.model.DemoItem;
-import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
-import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
@@ -84,7 +82,7 @@ class RecyclerViewAdapter extends AGVRecyclerViewAdapter<RecyclerView.ViewHolder
 
             playerView.setPlayer(player);
 
-            player.setPlayWhenReady(false);
+            player.setPlayWhenReady(true);
             player.seekTo(0, 0);
 
             Uri uri = Uri.parse("https://sample-videos.com/video123/mp4/240/big_buck_bunny_240p_30mb.mp4");

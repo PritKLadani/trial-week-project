@@ -84,12 +84,6 @@ public class RecyclerViewActivity extends AppCompatActivity {
 
                 Log.d("Temp_log_aaa", "isVideoView: ");
 
-                /*((RecyclerViewAdapter.MyViewHolderVideo) recyclerView.findViewHolderForAdapterPosition(actualFirstVisibleItem))
-                        .player.setPlayWhenReady(true);*/
-
-
-
-
 
                 if (dy > 0) {
 

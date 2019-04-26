@@ -2,6 +2,7 @@ package com.felipecsl.asymmetricgridview.app;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
 import android.os.Build;
@@ -25,6 +26,8 @@ import com.bumptech.glide.load.DecodeFormat;
 import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool;
 import com.bumptech.glide.load.resource.bitmap.FileDescriptorBitmapDecoder;
 import com.bumptech.glide.load.resource.bitmap.VideoBitmapDecoder;
+import com.felipecsl.asymmetricgridview.app.presenter.ApiObjectVideo;
+import com.felipecsl.asymmetricgridview.app.presenter.ApiUtil;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
@@ -42,6 +45,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class VideoViewActivity extends AppCompatActivity {
 
     RecyclerView recyclerViewVideo;
@@ -49,6 +56,10 @@ public class VideoViewActivity extends AppCompatActivity {
     int positionOfItemPlaying = -1;
     private boolean isSmoothScrolling = false;
     private ExoPlayer player;
+    VideoViewRecyclerAdapter adapter;
+    List<ApiObjectVideo> postList;
+    List<VideoItem> videoLinks;
+    ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,15 +70,98 @@ public class VideoViewActivity extends AppCompatActivity {
 
         recyclerViewVideo = findViewById(R.id.video_view_recycler);
 
-        final List<VideoItem> videoLinks = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
+        /*for (int i = 0; i < 10; i++) {
             videoLinks.add(new VideoItem("https://sample-videos.com/video123/mp4/240/big_buck_bunny_240p_30mb.mp4"));
-        }
+        }*/
 
         player = ExoPlayerFactory.newSimpleInstance(
                 new DefaultRenderersFactory(VideoViewActivity.this),
                 new DefaultTrackSelector(), new DefaultLoadControl());
-        final VideoViewRecyclerAdapter adapter = new VideoViewRecyclerAdapter(this, videoLinks, player);
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Loading...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        ApiUtil.getServiceClass().getAllPost().enqueue(new Callback<List<ApiObjectVideo>>() {
+            @Override
+            public void onResponse(Call<List<ApiObjectVideo>> call, Response<List<ApiObjectVideo>> response) {
+                if (response.isSuccessful()) {
+                    postList = response.body();
+                    Log.d("retro", "Returned count " + postList.size());
+
+                    setupRecyclerViewVideo(postList);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<ApiObjectVideo>> call, Throwable t) {
+                //showErrorMessage();
+                Log.d("retro", "error loading from API ::::" + t.getLocalizedMessage() + " :::: " + t.getMessage() + " :::: " + t.getCause());
+            }
+        });
+    }
+
+    class MyRunnable implements Runnable {
+
+        String url;
+        int time;
+        ImageView imageView;
+
+        public MyRunnable(String url, int time, ImageView imageView) {
+            this.url = url;
+            this.time = time;
+            this.imageView = imageView;
+        }
+
+        @Override
+        public void run() {
+            Bitmap result;
+            try {
+                result = retriveVideoFrameFromVideo(url, time);
+                imageView.setImageBitmap(result);
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
+            }
+        }
+    }
+
+    public static Bitmap retriveVideoFrameFromVideo(String videoPath, long time) throws Throwable {
+        Bitmap bitmap = null;
+        videoPath = videoPath.replace("\\/", "/");
+        Log.d("final", "thumbnail: time = " + time + " link = " + videoPath);
+        MediaMetadataRetriever mediaMetadataRetriever = null;
+        try {
+            mediaMetadataRetriever = new MediaMetadataRetriever();
+            if (Build.VERSION.SDK_INT >= 14)
+                mediaMetadataRetriever.setDataSource(videoPath, new HashMap<String, String>());
+            else
+                mediaMetadataRetriever.setDataSource(videoPath);
+
+            bitmap = mediaMetadataRetriever.getFrameAtTime(time * 1000, MediaMetadataRetriever.OPTION_CLOSEST);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Throwable(
+                    "Exception in retriveVideoFrameFromVideo(String videoPath)"
+                            + e.getMessage());
+
+        } finally {
+            if (mediaMetadataRetriever != null) {
+                mediaMetadataRetriever.release();
+            }
+        }
+        return bitmap;
+    }
+
+
+    void setupRecyclerViewVideo(final List<ApiObjectVideo> postList) {
+        videoLinks = new ArrayList<>();
+        for(int i = 0; i < postList.size(); i++) {
+            Log.d("retro", "i: " + i + " size: " + postList.size() + " url: " + postList.get(i));
+            videoLinks.add(new VideoItem(postList.get(i).getUrl()));
+        }
+
+        adapter = new VideoViewRecyclerAdapter(this, videoLinks, player);
 
         recyclerViewVideo.setAdapter(adapter);
 
@@ -75,11 +169,15 @@ public class VideoViewActivity extends AppCompatActivity {
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerViewVideo.setLayoutManager(llm);
 
-        adapter.getItemId(llm.findFirstVisibleItemPosition());
-
-        llm.findViewByPosition(llm.findFirstVisibleItemPosition());
-
         recyclerViewVideo.findViewHolderForAdapterPosition(llm.findFirstVisibleItemPosition());
+
+        try {
+            getThumbnails();
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+
+        progressDialog.dismiss();
 
         recyclerViewVideo.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -161,7 +259,7 @@ public class VideoViewActivity extends AppCompatActivity {
                             ((VideoViewRecyclerAdapter.MyVideoHolder) recyclerView.findViewHolderForAdapterPosition(position));
                     //holder.initializePlayer(videoLinks.get(position).getVideoLink(), videoLinks.get(position).getStartAt());
                     //holder.playerView.setForeground(null);
-                    Log.d("final", "current: time = " + videoLinks.get(position).getStartAt());
+                    Log.d("final", "current: position = " + position + " time = " + videoLinks.get(position).getStartAt());
                     holder.playerView.setPlayer(player);
                     holder.updateVisibility(true);
                     holder.startPlaying(videoLinks.get(position).getVideoLink(), videoLinks.get(position).getStartAt());
@@ -176,12 +274,16 @@ public class VideoViewActivity extends AppCompatActivity {
                 //Infinite scrolling
                 if (position > adapter.getItemCount() - 3 && dy > 0) {
                     Log.d("Temp_log_infinite", "infinite scroll enabled at: " + position);
+                    progressDialog.show();
                     final List<VideoItem> temp = new ArrayList<>();
-                    for (int i = 0; i < 10; i++) {
-                        temp.add(new VideoItem("https://sample-videos.com/video123/mp4/240/big_buck_bunny_240p_30mb.mp4"));
+                    for (int i = 0; i < postList.size(); i++) {
+                        temp.add(new VideoItem(postList.get(i).getUrl()));
+                        temp.get(i).setThumbnail(videoLinks.get(i).getThumbnail());
                     }
                     int oldSize = adapter.getItemCount();
                     videoLinks.addAll(temp);
+
+                    progressDialog.dismiss();
                     adapter.notifyItemRangeInserted(oldSize, 10);
                     Log.d("Temp_log_infinite", "newSize: " + videoLinks.size() + " " + adapter.getItemCount());
                 }
@@ -226,54 +328,14 @@ public class VideoViewActivity extends AppCompatActivity {
         });
     }
 
-    class MyRunnable implements Runnable {
-
-        String url;
-        int time;
-        ImageView imageView;
-
-        public MyRunnable(String url, int time, ImageView imageView) {
-            this.url = url;
-            this.time = time;
-            this.imageView = imageView;
-        }
-
-        @Override
-        public void run()  {
-            Bitmap result;
-            try {
-                result = retriveVideoFrameFromVideo(url, time);
-                imageView.setImageBitmap(result);
-            } catch (Throwable throwable) {
-                throwable.printStackTrace();
+    private void getThumbnails() throws Throwable {
+        for(int i = 0; i < videoLinks.size(); i++) {
+            if(videoLinks.get(i).getThumbnail() == null) {
+                String url = videoLinks.get(i).getVideoLink();
+                int time = videoLinks.get(i).getStartAt();
+                videoLinks.get(i).setThumbnail(retriveVideoFrameFromVideo(url, time));
             }
         }
-    }
-
-    public static Bitmap retriveVideoFrameFromVideo(String videoPath, long time) throws Throwable {
-        Bitmap bitmap = null;
-        Log.d("final", "thumbnail: time = " + time + " link = " + videoPath);
-        MediaMetadataRetriever mediaMetadataRetriever = null;
-        try {
-            mediaMetadataRetriever = new MediaMetadataRetriever();
-            if (Build.VERSION.SDK_INT >= 14)
-                mediaMetadataRetriever.setDataSource(videoPath, new HashMap<String, String>());
-            else
-                mediaMetadataRetriever.setDataSource(videoPath);
-
-            bitmap = mediaMetadataRetriever.getFrameAtTime(time * 1000, MediaMetadataRetriever.OPTION_CLOSEST);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new Throwable(
-                    "Exception in retriveVideoFrameFromVideo(String videoPath)"
-                            + e.getMessage());
-
-        } finally {
-            if (mediaMetadataRetriever != null) {
-                mediaMetadataRetriever.release();
-            }
-        }
-        return bitmap;
     }
 
     @Override

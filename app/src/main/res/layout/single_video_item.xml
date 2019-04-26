@@ -15,6 +15,13 @@
         android:id="@+id/thumbnail"
         android:layout_width="match_parent"
         android:layout_height="500dp"
-        android:src="@drawable/ic_launcher"/>
+        android:src="@drawable/ic_launcher" />
+
+    <!--<ProgressBar
+        android:id="@+id/progress_loader"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="visible" />-->
 
 </android.support.constraint.ConstraintLayout>

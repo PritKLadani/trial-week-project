@@ -2,6 +2,7 @@ package com.felipecsl.asymmetricgridview.app;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
@@ -14,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
@@ -33,6 +35,8 @@ import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 
 import java.util.List;
+
+import static com.felipecsl.asymmetricgridview.app.VideoViewActivity.retriveVideoFrameFromVideo;
 
 public class VideoViewRecyclerAdapter extends RecyclerView.Adapter<VideoViewRecyclerAdapter.MyVideoHolder> {
 
@@ -64,7 +68,7 @@ public class VideoViewRecyclerAdapter extends RecyclerView.Adapter<VideoViewRecy
         int position = holder.getLayoutPosition();
         Log.d("Temp_log", "detached: " + holder.getAdapterPosition() + " " + holder.getLayoutPosition());
         //holder.playerControl.pause();
-        if(holder.isPlaying) {
+        if (holder.isPlaying) {
             videoItems.get(position).setStartAt((int) player.getCurrentPosition());
             holder.updateVisibility(false);
             player.setPlayWhenReady(false);
@@ -78,6 +82,7 @@ public class VideoViewRecyclerAdapter extends RecyclerView.Adapter<VideoViewRecy
     @Override
     public void onViewAttachedToWindow(@NonNull MyVideoHolder holder) {
         super.onViewAttachedToWindow(holder);
+        Log.d("final", "onViewAttachedToWindow: " + holder.getAdapterPosition());
         int position = holder.getAdapterPosition();
         //Log.d("Temp_log", "attached: "+ holder.getAdapterPosition() + " " + holder.getLayoutPosition());
         //holder.initializePlayer(videoItems.get(position).getVideoLink(), videoItems.get(position).getStartAt());
@@ -89,79 +94,29 @@ public class VideoViewRecyclerAdapter extends RecyclerView.Adapter<VideoViewRecy
     @Override
     public void onBindViewHolder(@NonNull MyVideoHolder myVideoHolder, final int position) {
 
-        if(position == 0) {
+        Log.d("final", "onBindViewHolder: " + position);
+
+        if (position == 0) {
             myVideoHolder.playerView.setPlayer(player);
             myVideoHolder.startPlaying(videoItems.get(position).getVideoLink(), videoItems.get(position).getStartAt());
             myVideoHolder.isPlaying = true;
         }
 
-        //myVideoHolder.initializePlayer(videoItems.get(position).getVideoLink(), videoItems.get(position).getStartAt());
+        /*if (videoItems.get(position).getThumbnail() == null) {
 
-        /*myVideoHolder.playerView.getPlayer().addListener(new Player.EventListener() {
-            @Override
-            public void onTimelineChanged(Timeline timeline, Object manifest, int reason) {
+            try {
+                myVideoHolder.showProgressBar(View.VISIBLE);
+                videoItems.get(position).setThumbnail(retriveVideoFrameFromVideo(videoItems.get(position).getVideoLink(), videoItems.get(position).getStartAt()));
 
+            } catch (Throwable throwable) {
+                Log.d("final", "onBindViewHolder: error getting thumbnail");
+                Log.d("final", "error: " + throwable.getMessage() + " cause: " + throwable.getCause());
+                throwable.printStackTrace();
             }
+            myVideoHolder.showProgressBar(View.GONE);
+        }*/
+        myVideoHolder.thumbnail.setImageBitmap(videoItems.get(position).getThumbnail());
 
-            @Override
-            public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
-
-            }
-
-            @Override
-            public void onLoadingChanged(boolean isLoading) {
-
-            }
-
-            @Override
-            public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-                switch (playbackState) {
-                    case ExoPlayer.STATE_ENDED:
-                        RecyclerView recyclerView = ((Activity) mContext).findViewById(R.id.video_view_recycler);
-                        RecyclerView.LayoutManager llm = recyclerView.getLayoutManager();
-                        RecyclerView.SmoothScroller smoothScroller = new
-                                LinearSmoothScroller(mContext) {
-                                    @Override
-                                    protected int getVerticalSnapPreference() {
-                                        return LinearSmoothScroller.SNAP_TO_START;
-                                    }
-                                };
-                        smoothScroller.setTargetPosition(position + 1);
-                        llm.startSmoothScroll(smoothScroller);
-                        break;
-                }
-            }
-
-            @Override
-            public void onRepeatModeChanged(int repeatMode) {
-
-            }
-
-            @Override
-            public void onShuffleModeEnabledChanged(boolean shuffleModeEnabled) {
-
-            }
-
-            @Override
-            public void onPlayerError(ExoPlaybackException error) {
-
-            }
-
-            @Override
-            public void onPositionDiscontinuity(int reason) {
-
-            }
-
-            @Override
-            public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
-
-            }
-
-            @Override
-            public void onSeekProcessed() {
-
-            }
-        });*/
     }
 
     @Override
@@ -174,18 +129,24 @@ public class VideoViewRecyclerAdapter extends RecyclerView.Adapter<VideoViewRecy
         PlayerView playerView;
         ImageView thumbnail;
         boolean isPlaying;
+//        ProgressBar progressBar;
         //ExoPlayer player;
 
         public MyVideoHolder(@NonNull View itemView) {
             super(itemView);
             playerView = itemView.findViewById(R.id.video_view_holder_exoplayer);
             thumbnail = itemView.findViewById(R.id.thumbnail);
+//            progressBar = itemView.findViewById(R.id.progress_loader);
 //            playerView.setForeground(null);
 
             playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FILL);
 
 //            initializePlayer();
         }
+
+        /*public void showProgressBar(int visibility) {
+            progressBar.setVisibility(visibility);
+        }*/
 
         public void setPlayer(ExoPlayer player) {
             playerView.setPlayer(player);
@@ -197,7 +158,7 @@ public class VideoViewRecyclerAdapter extends RecyclerView.Adapter<VideoViewRecy
             ((ExoPlayer) playerView.getPlayer()).prepare(mediaSource, true, false);
             playerView.getPlayer().setRepeatMode(Player.REPEAT_MODE_ONE);
 
-            playerView.getPlayer().seekTo(0, Math.min(startTime, playerView.getPlayer().getDuration()));
+            playerView.getPlayer().seekTo(0, startTime);
             playerView.getPlayer().setPlayWhenReady(true);
         }
 
