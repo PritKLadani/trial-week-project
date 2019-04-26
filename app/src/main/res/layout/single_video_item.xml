@@ -8,13 +8,15 @@
         android:id="@+id/video_view_holder_exoplayer"
         android:layout_width="match_parent"
         android:layout_height="500dp"
-        android:visibility="gone"
+        app:shutter_background_color="@color/transparent"
+        android:background="#000000"
         app:controller_layout_id="@layout/exo_playback_control_view" />
 
     <ImageView
         android:id="@+id/thumbnail"
         android:layout_width="match_parent"
         android:layout_height="500dp"
+        android:visibility="gone"
         android:src="@drawable/ic_launcher" />
 
     <!--<ProgressBar

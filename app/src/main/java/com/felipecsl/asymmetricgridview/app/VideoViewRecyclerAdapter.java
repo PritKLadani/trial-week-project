@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
@@ -35,8 +37,6 @@ import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 
 import java.util.List;
-
-import static com.felipecsl.asymmetricgridview.app.VideoViewActivity.retriveVideoFrameFromVideo;
 
 public class VideoViewRecyclerAdapter extends RecyclerView.Adapter<VideoViewRecyclerAdapter.MyVideoHolder> {
 
@@ -70,7 +70,7 @@ public class VideoViewRecyclerAdapter extends RecyclerView.Adapter<VideoViewRecy
         //holder.playerControl.pause();
         if (holder.isPlaying) {
             videoItems.get(position).setStartAt((int) player.getCurrentPosition());
-            holder.updateVisibility(false);
+//            holder.updateVisibility(false);
             player.setPlayWhenReady(false);
             holder.playerView.setPlayer(null);
             holder.isPlaying = false;
@@ -115,7 +115,9 @@ public class VideoViewRecyclerAdapter extends RecyclerView.Adapter<VideoViewRecy
             }
             myVideoHolder.showProgressBar(View.GONE);
         }*/
-        myVideoHolder.thumbnail.setImageBitmap(videoItems.get(position).getThumbnail());
+        //myVideoHolder.thumbnail.setImageBitmap(videoItems.get(position).getThumbnail());
+        Drawable d = new BitmapDrawable(mContext.getResources(), videoItems.get(position).getThumbnail());
+        myVideoHolder.playerView.setForeground(d);
 
     }
 

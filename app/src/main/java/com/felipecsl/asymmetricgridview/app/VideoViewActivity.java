@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.media.MediaMetadataRetriever;
 import android.os.Build;
 import android.os.Bundle;
@@ -203,7 +205,7 @@ public class VideoViewActivity extends AppCompatActivity {
                         if (previousHolder != null && previousHolder.isPlaying) {
                             Log.d("final", "previous: time = " + player.getContentPosition() + " position = " + (position - 1));
                             videoLinks.get(position - 1).setStartAt((int) player.getCurrentPosition());
-                            previousHolder.updateVisibility(false);
+                            //previousHolder.updateVisibility(false);
                             /*Bitmap bitmap = null;
                             try {
                                 MyRunnable myRunnable = new MyRunnable(videoLinks.get(position - 1).getVideoLink(), videoLinks.get(position - 1).getStartAt(), previousHolder.thumbnail);
@@ -229,6 +231,8 @@ public class VideoViewActivity extends AppCompatActivity {
                             player.setPlayWhenReady(false);
                             previousHolder.playerView.setPlayer(null);
                             previousHolder.isPlaying = false;
+                            Drawable d = new BitmapDrawable(getResources(), videoLinks.get(position - 1).getThumbnail());
+                            previousHolder.playerView.setForeground(d);
                         }
                     }
 
@@ -238,7 +242,7 @@ public class VideoViewActivity extends AppCompatActivity {
                         if (nextHolder != null && nextHolder.isPlaying) {
                             Log.d("final", "next: time = " + player.getContentPosition() + " position = " + (position + 1));
                             videoLinks.get(position + 1).setStartAt((int) player.getCurrentPosition());
-                            nextHolder.updateVisibility(false);
+//                            nextHolder.updateVisibility(false);
                             /*Bitmap bitmap = null;
                             try {
                                 bitmap = retriveVideoFrameFromVideo(videoLinks.get(position + 1).getVideoLink(), videoLinks.get(position + 1).getStartAt());
@@ -252,6 +256,8 @@ public class VideoViewActivity extends AppCompatActivity {
                             player.setPlayWhenReady(false);
                             nextHolder.playerView.setPlayer(null);
                             nextHolder.isPlaying = false;
+                            Drawable d = new BitmapDrawable(getResources(), videoLinks.get(position + 1).getThumbnail());
+                            nextHolder.playerView.setForeground(d);
                         }
                     }
 
@@ -261,7 +267,8 @@ public class VideoViewActivity extends AppCompatActivity {
                     //holder.playerView.setForeground(null);
                     Log.d("final", "current: position = " + position + " time = " + videoLinks.get(position).getStartAt());
                     holder.playerView.setPlayer(player);
-                    holder.updateVisibility(true);
+//                    holder.updateVisibility(true);
+                    holder.playerView.setForeground(null);
                     holder.startPlaying(videoLinks.get(position).getVideoLink(), videoLinks.get(position).getStartAt());
                     //player.setPlayWhenReady(true);
                     holder.isPlaying = true;
