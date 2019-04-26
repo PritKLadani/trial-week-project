@@ -117,7 +117,7 @@ class RecyclerViewAdapter extends AGVRecyclerViewAdapter<RecyclerView.ViewHolder
         Log.d("RecyclerViewActivity", "onBindView position=" + position + " viewType = " + viewType + " isInstanceof(video) " + (holder instanceof MyViewHolderVideo));
 
         if (holder instanceof MyViewHolder) {
-            DemoItem item = items.get(position);
+            final DemoItem item = items.get(position);
             MyViewHolder myViewHolder = (MyViewHolder) holder;
 
             Glide.with(mContext)
@@ -125,6 +125,16 @@ class RecyclerViewAdapter extends AGVRecyclerViewAdapter<RecyclerView.ViewHolder
                     .override(150, 150)
                     .centerCrop()
                     .into(myViewHolder.imageView);
+
+            final String s = item.getUrl();
+            myViewHolder.imageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(mContext, ImageZoomActivity.class);
+                    intent.putExtra("url", s);
+                    mContext.startActivity(intent);
+                }
+            });
         } else if (holder instanceof MyViewHolderVideo) {
             DemoItem item = items.get(position);
             MyViewHolderVideo myViewHolderVideo = (MyViewHolderVideo) holder;

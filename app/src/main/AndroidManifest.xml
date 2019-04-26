@@ -12,9 +12,14 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@style/AppTheme">
         <activity
+            android:name=".ImageZoomActivity"
+            android:label="@string/title_activity_image_zoom"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+        <activity
             android:name=".VideoViewActivity"
             android:label="@string/title_activity_video_view"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".RecyclerViewActivity"
             android:label="RecyclerView sample"

@@ -20,5 +20,6 @@
         <item>Science &amp; Tech</item>
     </string-array>
     <string name="title_activity_video_view">VideoViewActivity</string>
+    <string name="title_activity_image_zoom">ImageZoomActivity</string>
 
 </resources>
